@@ -1,0 +1,50 @@
+cat > .gitignore <<'EOF'
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type checking / linters
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# Alembic
+alembic revision --autogenerate -m "create initial tables"
+EOF
+
+touch alembic/versions/.gitkeep
+
