@@ -21,6 +21,15 @@ User unique public ID is the existing UUID `id` field (string, 36 chars). Do **n
 - Response: `{ "id", "first_name", "last_name" }`
 - 404 if not found / inactive. No email or private data.
 
+### My pending invitations
+- `GET /api/v1/me/invitations`
+- Auth required. Returns invitations with `status=pending` for the current user only.
+- Response: `{ "items": [ { "id", "project_id", "project_name", "user_id", "role", "status", "invited_by_id", "invited_by_first_name", "invited_by_last_name", "invited_at" } ], "total": N }`
+- After seeing an invitation, invitee calls:
+  - `POST /api/v1/projects/{project_id}/invitations/accept` → status becomes `active` (full access)
+  - `POST /api/v1/projects/{project_id}/invitations/reject` → status becomes `rejected`
+- Until accepted, the user is **not** an active member: they cannot list project tasks or be assigned work as a collaborator.
+
 ### Project invitations & members
 - `POST /api/v1/projects/{project_id}/invitations`  
   Body: `{ "user_id": "<uuid>", "role": "member" | "owner" }` (default member)  
