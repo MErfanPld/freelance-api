@@ -8,6 +8,14 @@ User unique public ID is the existing UUID `id` field (string, 36 chars). Do **n
 
 ## New / Updated Endpoints
 
+### Current user public ID
+- `GET /api/v1/users/me/public-id`
+- Auth required (Bearer access token).
+- Response: `{ "id": "<uuid>" }` — only the authenticated user's own UUID.
+- 401 if missing/invalid token.
+- Does not accept a user id from path or query; cannot be used to look up another user.
+- For profile display and copy-to-clipboard before sharing with a project owner.
+
 ### User public lookup
 - `GET /api/v1/users/{user_id}/public`
 - Response: `{ "id", "first_name", "last_name" }`

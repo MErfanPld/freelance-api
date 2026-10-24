@@ -9,6 +9,7 @@ from app.api.v1.endpoints.credentials import router as credentials_router
 from app.api.v1.endpoints.notes import router as notes_router
 from app.api.v1.endpoints.dashboard import router as dashboard_router
 from app.api.v1.endpoints.members import router as members_router
+from app.api.v1.endpoints.users import router as users_router
 
 router = APIRouter(prefix="/api/v1")
 
@@ -19,6 +20,7 @@ async def health_check() -> dict[str, str]:
 
 
 router.include_router(auth_router)
+router.include_router(users_router)
 router.include_router(projects_router)
 router.include_router(clients_router)
 router.include_router(tasks_router)
