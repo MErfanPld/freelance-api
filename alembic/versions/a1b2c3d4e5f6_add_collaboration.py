@@ -83,33 +83,18 @@ def upgrade() -> None:
     op.create_index(op.f("ix_notifications_is_read"), "notifications", ["is_read"], unique=False)
     op.create_index(op.f("ix_notifications_project_id"), "notifications", ["project_id"], unique=False)
 
-    # SQLite does not support ALTER TABLE ADD CONSTRAINT.
-    # Use batch mode (copy-and-move) for tasks column + FK changes.
+    # SQLite: add columns only (no FK constraints in batch).
+    # App-level validation enforces assignee/created_by integrity.
+    # Avoids CircularDependencyError when two new FKs are added together.
     with op.batch_alter_table("tasks", schema=None) as batch_op:
         batch_op.add_column(sa.Column("created_by_id", sa.String(length=36), nullable=True))
         batch_op.add_column(sa.Column("assignee_id", sa.String(length=36), nullable=True))
         batch_op.create_index(op.f("ix_tasks_created_by_id"), ["created_by_id"], unique=False)
         batch_op.create_index(op.f("ix_tasks_assignee_id"), ["assignee_id"], unique=False)
-        batch_op.create_foreign_key(
-            "fk_tasks_created_by_id_users",
-            "users",
-            ["created_by_id"],
-            ["id"],
-            ondelete="SET NULL",
-        )
-        batch_op.create_foreign_key(
-            "fk_tasks_assignee_id_users",
-            "users",
-            ["assignee_id"],
-            ["id"],
-            ondelete="SET NULL",
-        )
 
 
 def downgrade() -> None:
     with op.batch_alter_table("tasks", schema=None) as batch_op:
-        batch_op.drop_constraint("fk_tasks_assignee_id_users", type_="foreignkey")
-        batch_op.drop_constraint("fk_tasks_created_by_id_users", type_="foreignkey")
         batch_op.drop_index(op.f("ix_tasks_assignee_id"))
         batch_op.drop_index(op.f("ix_tasks_created_by_id"))
         batch_op.drop_column("assignee_id")
