@@ -5,6 +5,8 @@ from app.db.session import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.schemas.project_member import (
+    PendingInvitationListResponse,
+    PendingInvitationResponse,
     ProjectInviteCreate,
     ProjectMemberListResponse,
     ProjectMemberResponse,
@@ -14,6 +16,50 @@ from app.services.project_member import ProjectMemberService
 
 
 router = APIRouter(tags=["Project Members"])
+
+
+@router.get(
+    "/me/invitations",
+    response_model=PendingInvitationListResponse,
+    summary="List my pending project invitations",
+)
+async def list_my_pending_invitations(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Invitations with status=pending for the authenticated user.
+
+    Use POST /projects/{project_id}/invitations/accept or .../reject to respond.
+    Until accepted, the user is not an active member and cannot access project tasks.
+    """
+    members = await ProjectMemberService(db).list_my_pending_invitations(
+        current_user.id,
+    )
+    items = []
+    for m in members:
+        project_name = None
+        if getattr(m, "project", None) is not None:
+            project_name = m.project.name
+        inv_fn = inv_ln = None
+        if getattr(m, "invited_by", None) is not None:
+            inv_fn = m.invited_by.first_name
+            inv_ln = m.invited_by.last_name
+        items.append(
+            PendingInvitationResponse(
+                id=m.id,
+                project_id=m.project_id,
+                project_name=project_name,
+                user_id=m.user_id,
+                role=m.role,
+                status=m.status,
+                invited_by_id=m.invited_by_id,
+                invited_by_first_name=inv_fn,
+                invited_by_last_name=inv_ln,
+                invited_at=m.invited_at,
+            )
+        )
+    return PendingInvitationListResponse(items=items, total=len(items))
 
 
 @router.get(
