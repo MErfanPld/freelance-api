@@ -7,9 +7,8 @@ from app.api.v1.endpoints.tasks import router as tasks_router
 from app.api.v1.endpoints.payments import router as payments_router
 from app.api.v1.endpoints.credentials import router as credentials_router
 from app.api.v1.endpoints.notes import router as notes_router
-from app.api.v1.endpoints.dashboard import (
-    router as dashboard_router,
-)
+from app.api.v1.endpoints.dashboard import router as dashboard_router
+from app.api.v1.endpoints.members import router as members_router
 
 router = APIRouter(prefix="/api/v1")
 
@@ -27,3 +26,4 @@ router.include_router(payments_router)
 router.include_router(credentials_router)
 router.include_router(notes_router)
 router.include_router(dashboard_router)
+router.include_router(members_router)
