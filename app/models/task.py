@@ -9,6 +9,7 @@ from app.db.base import BaseModel
 
 if TYPE_CHECKING:
     from app.models.project import Project
+    from app.models.user import User
 
 
 class Task(BaseModel):
@@ -17,6 +18,18 @@ class Task(BaseModel):
     project_id: Mapped[str] = mapped_column(
         ForeignKey("projects.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
+    )
+
+    created_by_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    assignee_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
         index=True,
     )
 
@@ -63,4 +76,12 @@ class Task(BaseModel):
 
     project: Mapped["Project"] = relationship(
         back_populates="tasks",
+    )
+
+    created_by: Mapped["User | None"] = relationship(
+        foreign_keys=[created_by_id],
+    )
+
+    assignee: Mapped["User | None"] = relationship(
+        foreign_keys=[assignee_id],
     )
