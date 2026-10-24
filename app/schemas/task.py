@@ -20,6 +20,7 @@ TaskPriority = Literal[
 
 class TaskCreate(BaseModel):
     project_id: str
+    assignee_id: str | None = None
     title: str = Field(min_length=1, max_length=200)
     description: str | None = None
     status: TaskStatus = "todo"
@@ -36,6 +37,7 @@ class TaskCreate(BaseModel):
 
 
 class TaskUpdate(BaseModel):
+    assignee_id: str | None = None
     title: str | None = Field(
         default=None,
         min_length=1,
@@ -67,6 +69,8 @@ class TaskResponse(BaseModel):
     estimated_hours: float | None
     actual_hours: float | None
     due_date: date | None
+    created_by_id: str | None = None
+    assignee_id: str | None = None
 
 
 class TaskListResponse(BaseModel):

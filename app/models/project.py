@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.payment import Payment
     from app.models.credential import Credential
     from app.models.note import Note
+    from app.models.project_member import ProjectMember
 
 
 class Project(BaseModel):
@@ -94,6 +95,11 @@ class Project(BaseModel):
     )
 
     notes: Mapped[list["Note"]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+
+    members: Mapped[list["ProjectMember"]] = relationship(
         back_populates="project",
         cascade="all, delete-orphan",
     )
