@@ -146,3 +146,7 @@ class ProjectMemberService:
         if not user or not user.is_active:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
         return user
+
+    async def list_my_pending_invitations(self, user_id: str) -> list[ProjectMember]:
+        """List invitations pending the current user's response."""
+        return await self.members.list_pending_for_user(user_id)
