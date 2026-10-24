@@ -26,7 +26,9 @@ class ProjectMemberRepository:
         user_id: str,
     ) -> ProjectMember | None:
         result = await self.db.execute(
-            select(ProjectMember).where(
+            select(ProjectMember)
+            .options(selectinload(ProjectMember.user))
+            .where(
                 ProjectMember.project_id == project_id,
                 ProjectMember.user_id == user_id,
             )
@@ -110,5 +112,24 @@ class ProjectMemberRepository:
             conditions.append(ProjectMember.status == "active")
         result = await self.db.execute(
             select(ProjectMember.project_id).where(and_(*conditions))
+        )
+        return list(result.scalars().all())
+
+    async def list_pending_for_user(
+        self,
+        user_id: str,
+    ) -> list[ProjectMember]:
+        """Pending invitations for the given user (awaiting their response)."""
+        result = await self.db.execute(
+            select(ProjectMember)
+            .options(
+                selectinload(ProjectMember.project),
+                selectinload(ProjectMember.invited_by),
+            )
+            .where(
+                ProjectMember.user_id == user_id,
+                ProjectMember.status == "pending",
+            )
+            .order_by(ProjectMember.invited_at.desc())
         )
         return list(result.scalars().all())
