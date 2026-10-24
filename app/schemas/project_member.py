@@ -59,3 +59,25 @@ class ProjectSummaryResponse(BaseModel):
     net_balance: str
     budget: str | None
     remaining_budget: str | None
+
+
+class PendingInvitationResponse(BaseModel):
+    """Invitation awaiting the current user's accept/reject."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    project_id: str
+    project_name: str | None = None
+    user_id: str
+    role: str
+    status: str
+    invited_by_id: str | None = None
+    invited_by_first_name: str | None = None
+    invited_by_last_name: str | None = None
+    invited_at: datetime | None = None
+
+
+class PendingInvitationListResponse(BaseModel):
+    items: list[PendingInvitationResponse]
+    total: int
