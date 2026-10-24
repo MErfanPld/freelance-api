@@ -83,35 +83,37 @@ def upgrade() -> None:
     op.create_index(op.f("ix_notifications_is_read"), "notifications", ["is_read"], unique=False)
     op.create_index(op.f("ix_notifications_project_id"), "notifications", ["project_id"], unique=False)
 
-    op.add_column("tasks", sa.Column("created_by_id", sa.String(length=36), nullable=True))
-    op.add_column("tasks", sa.Column("assignee_id", sa.String(length=36), nullable=True))
-    op.create_index(op.f("ix_tasks_created_by_id"), "tasks", ["created_by_id"], unique=False)
-    op.create_index(op.f("ix_tasks_assignee_id"), "tasks", ["assignee_id"], unique=False)
-    op.create_foreign_key(
-        "fk_tasks_created_by_id_users",
-        "tasks",
-        "users",
-        ["created_by_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
-    op.create_foreign_key(
-        "fk_tasks_assignee_id_users",
-        "tasks",
-        "users",
-        ["assignee_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
+    # SQLite does not support ALTER TABLE ADD CONSTRAINT.
+    # Use batch mode (copy-and-move) for tasks column + FK changes.
+    with op.batch_alter_table("tasks", schema=None) as batch_op:
+        batch_op.add_column(sa.Column("created_by_id", sa.String(length=36), nullable=True))
+        batch_op.add_column(sa.Column("assignee_id", sa.String(length=36), nullable=True))
+        batch_op.create_index(op.f("ix_tasks_created_by_id"), ["created_by_id"], unique=False)
+        batch_op.create_index(op.f("ix_tasks_assignee_id"), ["assignee_id"], unique=False)
+        batch_op.create_foreign_key(
+            "fk_tasks_created_by_id_users",
+            "users",
+            ["created_by_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
+        batch_op.create_foreign_key(
+            "fk_tasks_assignee_id_users",
+            "users",
+            ["assignee_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
 
 
 def downgrade() -> None:
-    op.drop_constraint("fk_tasks_assignee_id_users", "tasks", type_="foreignkey")
-    op.drop_constraint("fk_tasks_created_by_id_users", "tasks", type_="foreignkey")
-    op.drop_index(op.f("ix_tasks_assignee_id"), table_name="tasks")
-    op.drop_index(op.f("ix_tasks_created_by_id"), table_name="tasks")
-    op.drop_column("tasks", "assignee_id")
-    op.drop_column("tasks", "created_by_id")
+    with op.batch_alter_table("tasks", schema=None) as batch_op:
+        batch_op.drop_constraint("fk_tasks_assignee_id_users", type_="foreignkey")
+        batch_op.drop_constraint("fk_tasks_created_by_id_users", type_="foreignkey")
+        batch_op.drop_index(op.f("ix_tasks_assignee_id"))
+        batch_op.drop_index(op.f("ix_tasks_created_by_id"))
+        batch_op.drop_column("assignee_id")
+        batch_op.drop_column("created_by_id")
 
     op.drop_index(op.f("ix_notifications_project_id"), table_name="notifications")
     op.drop_index(op.f("ix_notifications_is_read"), table_name="notifications")
